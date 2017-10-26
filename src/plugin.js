@@ -25,62 +25,62 @@ module.exports = (config = {}) => {
 
     class extension {
 
-        construct() {
-            this.muted = {};
-        }
-
-        /**
-        * Check if a {@link User} is muted within the {@link Chat}.
-        * @method muter"."isMuted
-        * @ceextends Chat
-        */
-        isMuted(user) {
-            let muted = this.muted[user.uuid] || false;
-            return muted;
-        }
-
-        /**
-        * Prevent all events emitted from this {@link User} from reaching {@link Chat}.
-        * @method muter"."mute
-        * @ceextends Chat
-        */
-        mute(user) {
-            this.muted[user.uuid] = true;
-        }
-
-        /**
-        * Allow events from a {@link User} to be emitted again.
-        * @method muter"."unmute
-        * @ceextends Chat
-        */
-        unmute(user) {
-            this.muted[user.uuid] = false;
+        read(payload) {
+            payload.chat.emit('$.eventStatus.read', payload);
         }
 
     };
 
-    let muteFilter = (payload, next) => {
+    let published = (payload, next) => {
 
-        if(payload && payload.sender && payload.chat && payload.chat.muter.isMuted(payload.sender)) {
+        if(payload.message && payload.message.eventStatus && payload.message.eventStatus.id) {
+            payload.chat.trigger('$.eventStatus.sent', payload.message);
+        }
 
-            payload.chat.trigger('$.muter.eventRejected', payload);
+        next(null, payload);
 
-            next(true); // reject message and stop it from emitting
+    }
+
+    let created = (payload, next) => {
+
+        if(typeof payload == "object") {
+
+            // create a crude ID for this message
+            let id = new Date().getTime() + Math.floor(Math.random() * 10000);
+
+            payload.eventStatus = id;
+            payload.chat.trigger('$.eventStatus.created', payload);
 
         } else {
-            next(null, payload);
+            console.error('Plugin requires message to be object');
         }
+
+        next(null, payload);
+
+    };
+
+    let delivered = (payload, next) => {
+
+        if(payload.event !== '$.eventStatus.delivered' && payload.message.eventStatus && payload.message.eventStatus.id) {
+            payload.chat.emit('$.eventStatus.delivered', payload);
+        }
+
+        next(null, payload);
 
     };
 
     return {
-        namespace: 'muter',
+        namespace: 'eventStatus',
         extends: {
             Chat: extension
         },
         middleware: {
+            emit: {
+                '*': created
+            },
             on: {
-                '*': muteFilter
+                '$.publish.success', published
+                '*': delivered
             }
         }
     }
