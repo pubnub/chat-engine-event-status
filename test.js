@@ -19,6 +19,14 @@ describe('config', function() {
             globalChannel: 'test-channel'
         });
 
+        CE2 = ChatEngine.create({
+            publishKey: 'pub-c-c6303bb2-8bf8-4417-aac7-e83b52237ea6',
+            subscribeKey: 'sub-c-67db0e7a-50be-11e7-bf50-02ee2ddab7fe',
+        }, {
+            endpoint: 'http://localhost:3000/insecure',
+            globalChannel: 'test-channel'
+        });
+
         assert.isOk(CE);
 
     });
@@ -30,13 +38,14 @@ describe('connect', function() {
     it('should be identified as new user', function(done) {
 
         CE.connect('robot-tester', {works: true}, 'auth-key');
+        CE2.connect('robot-tester-2', {works: true}, 'auth-key');
 
         CE.on('$.ready', (data) => {
 
             assert.isObject(data.me);
             done();
 
-        })
+        });
 
     });
 
@@ -49,7 +58,7 @@ describe('plugins', function() {
     it('should be created', function() {
 
         pluginchat = new CE.Chat(channel);
-        pluginchat2 = new CE.Chat(channel);
+        pluginchat2 = new CE2.Chat(channel);
 
         pluginchat.plugin(status({}));
         pluginchat2.plugin(status({}));
