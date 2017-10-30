@@ -1,27 +1,20 @@
 /**
-* Blocks all events from a {@link User} from being emitted.
-* @module chat-engine-mute-user
+*
+* @module chat-engine-event-status
 * @requires {@link ChatEngine}
 */
 
 /**
-* Bind the plugin to a chat
-* ```js
-* chat = new CE.Chat('bad-chat');
-* chat.plugin(muter());
-* ```
-*
-* Mute a specific user
-* ```js
-* let user = new ChatEngine.user('bad-guy');
-* chat.muteUser.mute(user);
-* ```
-*
-* Chat will no longer receive any messages from "bad-guy"
 *
 * @function
 */
 module.exports = (config = {}) => {
+
+    let isNotPluginEvent = (payload) => {
+
+        return true;
+
+    }
 
     class extension {
 
@@ -33,8 +26,9 @@ module.exports = (config = {}) => {
 
     let published = (payload, next) => {
 
-        if(payload.message && payload.message.eventStatus && payload.message.eventStatus.id) {
-            payload.chat.trigger('$.eventStatus.sent', payload.message);
+        if(payload.eventStatus) {
+
+            payload.chat.trigger('$.eventStatus.sent', payload.eventStatus);
         }
 
         next(null, payload);
@@ -43,16 +37,15 @@ module.exports = (config = {}) => {
 
     let created = (payload, next) => {
 
-        if(typeof payload == "object") {
+        if(typeof payload == "object" && isNotPluginEvent(payload)) {
 
             // create a crude ID for this message
             let id = new Date().getTime() + Math.floor(Math.random() * 10000);
 
-            payload.eventStatus = id;
-            payload.chat.trigger('$.eventStatus.created', payload);
+            payload.eventStatus = {id};
 
-        } else {
-            console.error('Plugin requires message to be object');
+            payload.chat.trigger('$.eventStatus.created', {id});
+
         }
 
         next(null, payload);
@@ -61,8 +54,12 @@ module.exports = (config = {}) => {
 
     let delivered = (payload, next) => {
 
-        if(payload.event !== '$.eventStatus.delivered' && payload.message.eventStatus && payload.message.eventStatus.id) {
-            payload.chat.emit('$.eventStatus.delivered', payload);
+        if(isNotPluginEvent(payload)
+            && payload.eventStatus
+            && payload.eventStatus.id) {
+
+            payload.chat.emit('$.eventStatus.delivered', {id: payload.eventStatus.id});
+
         }
 
         next(null, payload);
@@ -76,11 +73,11 @@ module.exports = (config = {}) => {
         },
         middleware: {
             emit: {
-                '*': created
+                'test-message': created
             },
             on: {
-                '$.publish.success', published
-                '*': delivered
+                '$.publish.success': published,
+                'test-message': delivered
             }
         }
     }

@@ -1,6 +1,6 @@
 
 const assert = require('chai').assert;
-const mute = require('./src/plugin.js');
+const status = require('./src/plugin.js');
 
 const ChatEngine = require('../chat-engine/src/index.js');
 
@@ -29,7 +29,7 @@ describe('connect', function() {
 
     it('should be identified as new user', function(done) {
 
-        CE.connect('robot-tester' + new Date(), {works: true}, 'auth-key');
+        CE.connect('robot-tester', {works: true}, 'auth-key');
 
         CE.on('$.ready', (data) => {
 
@@ -42,43 +42,40 @@ describe('connect', function() {
 
 });
 
+let channel = 'pluginchat-filter';
+
 describe('plugins', function() {
 
     it('should be created', function() {
 
-        pluginchat = new CE.Chat('pluginchat' + new Date().getTime());
-        pluginchat2 = new CE.Chat('pluginchat' + new Date().getTime());
+        pluginchat = new CE.Chat(channel);
+        pluginchat2 = new CE.Chat(channel);
 
-        pluginchat.plugin(mute({}));
-        pluginchat2.plugin(mute({}));
+        pluginchat.plugin(status({}));
+        pluginchat2.plugin(status({}));
+
+        pluginchat.on('$.eventStatus.created', (a) => {
+            console.log('created')
+        });
+
+        pluginchat.on('$.eventStatus.sent', (a) => {
+            console.log('sent')
+        });
+
+        pluginchat.on('$.eventStatus.delivered', (a) => {
+            console.log('delivered')
+        });
+
+        pluginchat2.on('$.connected', () => {
+            console.log('connected called')
+            pluginchat.emit('test-message');
+        });
 
     });
 
-    it('should be muted', function(done) {
+    it('should get sent callback', function(done) {
 
-        pluginchat.muter.mute(CE.me);
-
-        pluginchat.on('message2', (payload) => {
-            assert.fail();
-        });
-
-        pluginchat.on('$.muter.eventRejected', (payload) => {
-            done();
-        });
-
-        pluginchat.emit('message2', 'test');
-
-    });
-
-    it('should not be muted', function(done) {
-
-        pluginchat2.on('message2', (payload) => {
-            assert.fail();
-        });
-
-        pluginchat2.emit('message2', 'test');
-
-        done();
+        this.timeout(20000)
 
     });
 
