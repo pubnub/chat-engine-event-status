@@ -20,15 +20,15 @@ module.exports = (config = {}) => {
             payload.chat.emit('$.eventStatus.read', payload);
         }
 
-        getMessage(payload, callback) {
+        getMessage(packet, callback) {
 
             let eventMatch = (event) => {
 
                 let middleware = {};
-                middleware[payload.event] = (p, next) => {
+                middleware[packet.event] = (payload, next) => {
 
-                    let matches = p && p.eventStatus && p.eventStatus.id === payload.eventStatus.id;
-                    next(!matches, p);
+                    let matches = payload && payload.eventStatus && payload.eventStatus.id === packet.id;
+                    next(!matches, payload);
 
                 }
 
@@ -40,6 +40,7 @@ module.exports = (config = {}) => {
                 event: payload.event,
                 limit: 1
             }).on(payload.event, (event) => {
+                console.log('!!!!!!!!!!!!!!!!!!!!!!!')
                 console.log(event);
             });
         }
