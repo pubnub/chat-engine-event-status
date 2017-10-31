@@ -39,7 +39,9 @@ describe('connect', function() {
         CE.on('$.ready', (data) => {
 
             pluginchat = new CE.Chat(channel);
-            pluginchat.plugin(status())
+            pluginchat.plugin(status({
+                event: 'test-message'
+            }))
             pluginchat.on('$.connected', () => {
 
                 done();
@@ -52,7 +54,7 @@ describe('connect', function() {
 
     });
 
-    it('should be created', function(done) {
+    it('should trigger receipts', function(done) {
 
         this.timeout(5000)
 

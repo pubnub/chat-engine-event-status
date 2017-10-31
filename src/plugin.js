@@ -10,27 +10,27 @@
 */
 module.exports = (config = {}) => {
 
-    let events = {};
-
-    let isNotPluginEvent = (payload) => {
-        return true;
-    }
+    let list = {};
 
     class extension {
+
+        enable(event) {
+            this.events.push(event);
+        }
 
         read(payload) {
             payload.chat.emit('$.eventStatus.read', payload.data);
         }
 
         get(payload) {
-            return events[payload.data.id] || false;
+            return list[payload.data.id] || false;
         }
 
     };
 
     let published = (payload, next) => {
 
-        if(payload.eventStatus) {
+        if(payload.eventStatus && payload.event == config.event) {
             payload.chat.trigger('$.eventStatus.sent', {data: payload.eventStatus});
         }
 
@@ -40,12 +40,12 @@ module.exports = (config = {}) => {
 
     let created = (payload, next) => {
 
-        if(typeof payload == "object" && isNotPluginEvent(payload)) {
+        if(typeof payload == "object") {
 
             // create a crude ID for this message
             let id = new Date().getTime() + Math.floor(Math.random() * 10000);
 
-            events[id] = payload;
+            list[id] = payload;
 
             payload.eventStatus = {id};
 
@@ -59,8 +59,7 @@ module.exports = (config = {}) => {
 
     let delivered = (payload, next) => {
 
-        if(isNotPluginEvent(payload)
-            && payload
+        if(payload
             && payload.eventStatus
             && payload.eventStatus.id) {
 
@@ -72,20 +71,24 @@ module.exports = (config = {}) => {
 
     };
 
-    return {
+    let plug = {
         namespace: 'eventStatus',
         extends: {
             Chat: extension
         },
         middleware: {
             emit: {
-                'test-message': created
+                '*': created
             },
             on: {
                 '$.publish.success': published,
-                'test-message': delivered
+                '*': delivered
             }
         }
     }
 
+    plug.middleware.emit[config.event] = created;
+    plug.middleware.on[config.event] = delivered;
+
+    return plug;
 }
