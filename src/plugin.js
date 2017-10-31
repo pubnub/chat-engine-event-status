@@ -20,38 +20,37 @@ module.exports = (config = {}) => {
             payload.chat.emit('$.eventStatus.read', payload);
         }
 
-        getMessage(payload) {
+        getMessage(payload, callback) {
 
-            // let eventMatch = (event) => {
-            //     return {
-            //         middleware: {
-            //             on: {
-            //                 '*': (payload, next) => {
-            //                     let matches = payload && payload.event && payload.event === event;
-            //                     next(!matches, payload);
-            //                 }
-            //             }
-            //         }
+            let eventMatch = (event) => {
 
-            //         let middleware = {};
-            //         return middleware[]
-            //     };
-            // }
+                let middleware = {};
+                middleware[payload.event] = (p, next) => {
+
+                    let matches = p && p.eventStatus && p.eventStatus.id === payload.eventStatus.id;
+                    next(!matches, p);
+
+                }
+
+                return middleware;
+
+            };
 
             payload.chat.search({
                 event: payload.event,
-                limit: 100
+                limit: 1
+            }).on(payload.event, (event) => {
+                console.log(event);
             });
-
-            payload.data.id
         }
 
     };
 
     let published = (payload, next) => {
 
-        if(payload.eventStatus) {
+        console.log(payload.eventStatus)
 
+        if(payload.eventStatus) {
             payload.chat.trigger('$.eventStatus.sent', payload.eventStatus);
         }
 
@@ -78,7 +77,10 @@ module.exports = (config = {}) => {
 
     let delivered = (payload, next) => {
 
+        console.log(payload.eventStatus)
+
         if(isNotPluginEvent(payload)
+            && payload
             && payload.eventStatus
             && payload.eventStatus.id) {
 

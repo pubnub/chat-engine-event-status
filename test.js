@@ -6,6 +6,7 @@ const ChatEngine = require('../chat-engine/src/index.js');
 
 let pluginchat;
 let CE;
+let CE2;
 
 describe('config', function() {
 
@@ -33,12 +34,13 @@ describe('config', function() {
 
 });
 
+let channel = 'pluginchat-filter';
+
 describe('connect', function() {
 
-    it('should be identified as new user', function(done) {
+    it('connect first client', function(done) {
 
         CE.connect('robot-tester', {works: true}, 'auth-key');
-        CE2.connect('robot-tester-2', {works: true}, 'auth-key');
 
         CE.on('$.ready', (data) => {
 
@@ -49,13 +51,22 @@ describe('connect', function() {
 
     });
 
-});
+    it('connect second client', function(done) {
 
-let channel = 'pluginchat-filter';
+        CE2.connect('robot-tester-2', {works: true}, 'auth-key');
 
-describe('plugins', function() {
+        CE2.on('$.ready', (data) => {
+
+            assert.isObject(data.me);
+            done();
+
+        });
+
+    });
 
     it('should be created', function(done) {
+
+        this.timeout(5000)
 
         pluginchat = new CE.Chat(channel);
         pluginchat2 = new CE2.Chat(channel);
@@ -63,12 +74,19 @@ describe('plugins', function() {
         pluginchat.plugin(status({}));
         pluginchat2.plugin(status({}));
 
+        pluginchat.onAny((a,b) => {
+            console.log('1', a);
+        })
+        pluginchat2.onAny((a,b) => {
+            console.log('2', a);
+        })
+
         pluginchat.on('$.eventStatus.created', (a) => {
-            console.log('created', a.data.id)
+            console.log('created', a.id)
         });
 
         pluginchat.on('$.eventStatus.sent', (a) => {
-            console.log('sent', a.data.id)
+            console.log('sent', a.id)
         });
 
         pluginchat.on('$.eventStatus.delivered', (a) => {
@@ -76,10 +94,13 @@ describe('plugins', function() {
             done();
         });
 
-        pluginchat2.on('$.connected', () => {
-            console.log('connected called')
-            pluginchat.emit('test-message');
-        });
+        setTimeout(function() {
+
+            pluginchat.emit('test-message', {
+                message: 'test-message'
+            });
+
+        }, 1000)
 
     });
 
