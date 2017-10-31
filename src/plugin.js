@@ -11,15 +11,39 @@
 module.exports = (config = {}) => {
 
     let isNotPluginEvent = (payload) => {
-
         return true;
-
     }
 
     class extension {
 
         read(payload) {
             payload.chat.emit('$.eventStatus.read', payload);
+        }
+
+        getMessage(payload) {
+
+            // let eventMatch = (event) => {
+            //     return {
+            //         middleware: {
+            //             on: {
+            //                 '*': (payload, next) => {
+            //                     let matches = payload && payload.event && payload.event === event;
+            //                     next(!matches, payload);
+            //                 }
+            //             }
+            //         }
+
+            //         let middleware = {};
+            //         return middleware[]
+            //     };
+            // }
+
+            payload.chat.search({
+                event: payload.event,
+                limit: 100
+            });
+
+            payload.data.id
         }
 
     };

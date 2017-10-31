@@ -55,7 +55,7 @@ let channel = 'pluginchat-filter';
 
 describe('plugins', function() {
 
-    it('should be created', function() {
+    it('should be created', function(done) {
 
         pluginchat = new CE.Chat(channel);
         pluginchat2 = new CE2.Chat(channel);
@@ -64,27 +64,22 @@ describe('plugins', function() {
         pluginchat2.plugin(status({}));
 
         pluginchat.on('$.eventStatus.created', (a) => {
-            console.log('created')
+            console.log('created', a.data.id)
         });
 
         pluginchat.on('$.eventStatus.sent', (a) => {
-            console.log('sent')
+            console.log('sent', a.data.id)
         });
 
         pluginchat.on('$.eventStatus.delivered', (a) => {
-            console.log('delivered')
+            console.log('delivered', a.data.id)
+            done();
         });
 
         pluginchat2.on('$.connected', () => {
             console.log('connected called')
             pluginchat.emit('test-message');
         });
-
-    });
-
-    it('should get sent callback', function(done) {
-
-        this.timeout(20000)
 
     });
 
