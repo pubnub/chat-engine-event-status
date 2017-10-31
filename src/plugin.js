@@ -10,6 +10,8 @@
 */
 module.exports = (config = {}) => {
 
+    let events = {};
+
     let isNotPluginEvent = (payload) => {
         return true;
     }
@@ -17,42 +19,19 @@ module.exports = (config = {}) => {
     class extension {
 
         read(payload) {
-            payload.chat.emit('$.eventStatus.read', payload);
+            payload.chat.emit('$.eventStatus.read', payload.data);
         }
 
-        getMessage(packet, callback) {
-
-            let eventMatch = (event) => {
-
-                let middleware = {};
-                middleware[packet.event] = (payload, next) => {
-
-                    let matches = payload && payload.eventStatus && payload.eventStatus.id === packet.id;
-                    next(!matches, payload);
-
-                }
-
-                return middleware;
-
-            };
-
-            payload.chat.search({
-                event: payload.event,
-                limit: 1
-            }).on(payload.event, (event) => {
-                console.log('!!!!!!!!!!!!!!!!!!!!!!!')
-                console.log(event);
-            });
+        get(payload) {
+            return events[payload.data.id] || false;
         }
 
     };
 
     let published = (payload, next) => {
 
-        console.log(payload.eventStatus)
-
         if(payload.eventStatus) {
-            payload.chat.trigger('$.eventStatus.sent', payload.eventStatus);
+            payload.chat.trigger('$.eventStatus.sent', {data: payload.eventStatus});
         }
 
         next(null, payload);
@@ -66,9 +45,11 @@ module.exports = (config = {}) => {
             // create a crude ID for this message
             let id = new Date().getTime() + Math.floor(Math.random() * 10000);
 
+            events[id] = payload;
+
             payload.eventStatus = {id};
 
-            payload.chat.trigger('$.eventStatus.created', {id});
+            payload.chat.trigger('$.eventStatus.created', {data: {id}});
 
         }
 
@@ -77,8 +58,6 @@ module.exports = (config = {}) => {
     };
 
     let delivered = (payload, next) => {
-
-        console.log(payload.eventStatus)
 
         if(isNotPluginEvent(payload)
             && payload

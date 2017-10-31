@@ -10,7 +10,7 @@ let CE2;
 
 describe('config', function() {
 
-    it('should be configured', function() {
+    it('should be configured', function(done) {
 
         CE = ChatEngine.create({
             publishKey: 'pub-c-c6303bb2-8bf8-4417-aac7-e83b52237ea6',
@@ -20,15 +20,9 @@ describe('config', function() {
             globalChannel: 'test-channel'
         });
 
-        CE2 = ChatEngine.create({
-            publishKey: 'pub-c-c6303bb2-8bf8-4417-aac7-e83b52237ea6',
-            subscribeKey: 'sub-c-67db0e7a-50be-11e7-bf50-02ee2ddab7fe',
-        }, {
-            endpoint: 'http://localhost:3000/insecure',
-            globalChannel: 'test-channel'
-        });
-
         assert.isOk(CE);
+
+        done();
 
     });
 
@@ -44,21 +38,15 @@ describe('connect', function() {
 
         CE.on('$.ready', (data) => {
 
-            assert.isObject(data.me);
-            done();
+            pluginchat = new CE.Chat(channel);
+            pluginchat.plugin(status())
+            pluginchat.on('$.connected', () => {
 
-        });
+                done();
 
-    });
-
-    it('connect second client', function(done) {
-
-        CE2.connect('robot-tester-2', {works: true}, 'auth-key');
-
-        CE2.on('$.ready', (data) => {
+            })
 
             assert.isObject(data.me);
-            done();
 
         });
 
@@ -68,39 +56,39 @@ describe('connect', function() {
 
         this.timeout(5000)
 
-        pluginchat = new CE.Chat(channel);
-        pluginchat2 = new CE2.Chat(channel);
-
-        pluginchat.plugin(status({}));
-        pluginchat2.plugin(status({}));
-
-        pluginchat.onAny((a,b) => {
-            console.log('1', a);
-        })
-        pluginchat2.onAny((a,b) => {
-            console.log('2', a);
-        })
+        let created = false;
+        let sent = false;
+        let delievered = false;
 
         pluginchat.on('$.eventStatus.created', (a) => {
-            console.log('created', a.id)
+            created = true;
         });
 
         pluginchat.on('$.eventStatus.sent', (a) => {
-            console.log('sent', a.id)
+            sent = true;
         });
 
         pluginchat.on('$.eventStatus.delivered', (a) => {
-            console.log('delivered', a.data.id)
-            done();
+            delivered = true;
+            pluginchat.eventStatus.read(a);
         });
 
-        setTimeout(function() {
+        pluginchat.on('$.eventStatus.read', (a) => {
 
-            pluginchat.emit('test-message', {
-                message: 'test-message'
-            });
+            let e = pluginchat.eventStatus.get(a);
 
-        }, 1000)
+            assert.isObject(e);
+            assert.equal(e.eventStatus.id, a.data.id);
+            assert.isTrue(created);
+            assert.isTrue(sent);
+            assert.isTrue(delivered);
+
+            done();
+        })
+
+        pluginchat.emit('test-message', {
+            message: 'test-message'
+        });
 
     });
 
