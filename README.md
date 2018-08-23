@@ -1,6 +1,6 @@
-# Unread Messages Plugin
+# Chat Engine Event Status Plugin
 
-Adds the ability to count unread messages in a ChatEngine Chat
+Adds the ability of tracking each message into different stages: (sent, delivery and read)
 
 ### Quick Start
 
@@ -18,24 +18,77 @@ ChatEngine.connect('Username');
 ChatEngine.on('$.ready', () => { ... });
 ```
 
-1. Attach this plugin to the channel you want, in this case global
+1. Attach this plugin to the chat you want to
 ```js
-ChatEngine.global.plugin(ChatEngineCore.plugin['chat-engine-unread-messages']());
+const status = require('chat-engine-event-status');
+
+chat.plugin(status({ event: 'message' }));
 ```
 
-2. The plugin needs to be notified when the user is considered active or inactive to properly count messages
+2. How to mark the messages as sent
 ```js
-// sets unreadCount to 0, stops counting unread messages and stops emitting events
-ChatEngine.global.unreadMessages.active();
-```
-```js
-// starts counting unread messages and starts emitting events - default state
-ChatEngine.global.unreadMessages.inactive();
-```
+let sent = [];
 
-3. Listen for the `$unread` events that emit whenever your channel recieves a message while it is marked as inactive
-```js
-ChatEngine.global.on('$unread', () => {
-    console.log(ChatEngine.global.unreadCount);
+//gets the tracking id of the new message sent
+
+chat.on('$.eventStatus.sent', (payload) => {
+    const { data } = payload;
+    sent.push(data.id);
 });
 ```
+
+```js
+//synchronizes the message received into the stream with the tracking id got from event $.eventStatus.sent
+
+let messages = [];
+
+chat.on('message', (payload) => {
+    const index = this.sent.indexOf(payload.eventStatus.id);
+
+    if (index >= 0) {
+        payload.eventStatus.sent = true;
+        sent.splice(index, 1);
+    }
+
+    messages.push(payload);
+});
+```
+
+In this way you can display into the screen that the message was sent using a check mark or whatever UI strategy.
+
+3. How to identify and mark a message as delivery
+```js
+chat.on('$.eventStatus.delivered', (payload) => {
+    let message = messages.find(w => w.eventStatus.id === payload.data.id);
+
+    if (message) {
+        message.eventStatus.delivery = true;
+    }
+});
+```
+
+4. How to mark a message as read
+
+**chat.eventStatus.read** function receives as payload the message which has been read from the other side,
+in this point you can use different strategies to mark the message as read e.g. using the scroll down or when the list is
+focused.
+
+```js
+chat.on('message', (payload) => {
+    chat.eventStatus.read(payload);
+});
+```
+
+5. How to know which ones and who have read the messages
+
+```js
+chat.on('$.eventStatus.read', (payload) => {
+    let message = this.messages.find(w => w.eventStatus.id === payload.data.id);
+
+    if (message) {
+        message.eventStatus.read = true;
+    }
+});
+```
+
+Every payload returns field sender with which you can retrieve who user has notified the delivery or reading.
