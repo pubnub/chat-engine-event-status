@@ -13,10 +13,9 @@ describe('config', function() {
     it('should be configured', function(done) {
 
         CE = ChatEngine.create({
-            publishKey: 'pub-c-c6303bb2-8bf8-4417-aac7-e83b52237ea6',
-            subscribeKey: 'sub-c-67db0e7a-50be-11e7-bf50-02ee2ddab7fe',
+            publishKey: 'pub-c-01491c54-379f-4d4a-b20b-9a03c24447c7',
+            subscribeKey: 'sub-c-eaf4a984-4356-11e8-91e7-8ad1b2d46395',
         }, {
-            endpoint: 'http://localhost:3000/insecure',
             globalChannel: 'test-channel'
         });
 
@@ -33,6 +32,8 @@ let channel = 'pluginchat-filter';
 describe('connect', function() {
 
     it('connect first client', function(done) {
+
+        this.timeout(60000);
 
         CE.connect('robot-tester', {works: true}, 'auth-key');
 
