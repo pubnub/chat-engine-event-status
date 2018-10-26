@@ -1,4 +1,3 @@
-
 const assert = require('chai').assert;
 const status = require('./src/plugin.js');
 
@@ -28,7 +27,6 @@ describe('config', function() {
 });
 
 let channel = 'pluginchat-filter';
-
 describe('connect', function() {
 
     it('connect first client', function(done) {
@@ -43,11 +41,14 @@ describe('connect', function() {
             pluginchat.plugin(status({
                 event: 'test-message'
             }))
+
+            CE.proto('Event', status({
+                event: 'test-message'
+            }))
+
             pluginchat.on('$.connected', () => {
-
                 done();
-
-            })
+            });
 
             assert.isObject(data.me);
 
@@ -62,6 +63,10 @@ describe('connect', function() {
         let created = false;
         let sent = false;
         let delievered = false;
+
+        CE.onAny((a) => {
+            console.log(a);
+        })
 
         pluginchat.on('$.eventStatus.created', (a) => {
             created = true;
@@ -89,9 +94,14 @@ describe('connect', function() {
             done();
         })
 
-        pluginchat.emit('test-message', {
+        let emitter = pluginchat.emit('test-message', {
             message: 'test-message'
-        });
+        }).plugin(status({
+            event: 'test-message'
+        }));
+        // emitter.on('$.emitted', () => {
+        //     console.log('emitted!');
+        // });
 
     });
 

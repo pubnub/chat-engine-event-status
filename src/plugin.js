@@ -31,6 +31,9 @@ module.exports = (config = {}) => {
   };
 
   let published = (payload, next) => {
+
+    console.log('published called', payload)
+
     if(payload.eventStatus && payload.event === config.event) {
       payload.chat.trigger('$.eventStatus.sent', { data: payload.eventStatus });
     }
