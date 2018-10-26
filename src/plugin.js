@@ -19,20 +19,21 @@ module.exports = (config = {}) => {
     }
 
     read(payload) {
-      if (payload.sender.name !== 'Me') {
-        payload.chat.emit('$.eventStatus.read', { id: payload.eventStatus.id });
+      if(payload.data) {
+        payload.chat.emit('$.eventStatus.read', { id: payload.data.id });
       }
     }
 
-    get(payload) {
+    geta(payload) {
+
+      console.log('list', list)
+
       return list[payload.data.id] || false;
     }
 
   };
 
   let published = (payload, next) => {
-
-    console.log('published called', payload)
 
     if(payload.eventStatus && payload.event === config.event) {
       payload.chat.trigger('$.eventStatus.sent', { data: payload.eventStatus });
@@ -58,7 +59,8 @@ module.exports = (config = {}) => {
   };
 
   let delivered = (payload, next) => {
-    if(payload && payload.eventStatus && payload.eventStatus.id && payload.sender.name !== 'Me') {
+
+    if(payload && payload.eventStatus && payload.eventStatus.id && payload.sender.name === 'Me') {
       payload.chat.emit('$.eventStatus.delivered', { id: payload.eventStatus.id });
     }
 

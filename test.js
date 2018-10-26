@@ -78,12 +78,19 @@ describe('connect', function() {
 
         pluginchat.on('$.eventStatus.delivered', (a) => {
             delivered = true;
+
+            console.log(a)
+
             pluginchat.eventStatus.read(a);
         });
 
         pluginchat.on('$.eventStatus.read', (a) => {
 
-            let e = pluginchat.eventStatus.get(a);
+            console.log(a.data.id)
+
+            let e = pluginchat.eventStatus.geta(a);
+
+            console.log(e)
 
             assert.isObject(e);
             assert.equal(e.eventStatus.id, a.data.id);
