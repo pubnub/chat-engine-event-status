@@ -25,9 +25,6 @@ module.exports = (config = {}) => {
     }
 
     geta(payload) {
-
-      console.log('list', list)
-
       return list[payload.data.id] || false;
     }
 

@@ -33,9 +33,9 @@ describe('connect', function() {
 
         this.timeout(60000);
 
-        CE.connect('robot-tester', {works: true}, 'auth-key');
+        CE.connect('robot-tester', 'auth-key');
 
-        CE.on('$.ready', (data) => {
+        CE.on('$.ready', (me) => {
 
             pluginchat = new CE.Chat(channel);
             pluginchat.plugin(status({
@@ -50,7 +50,7 @@ describe('connect', function() {
                 done();
             });
 
-            assert.isObject(data.me);
+            assert.isObject(me);
 
         });
 
@@ -64,10 +64,6 @@ describe('connect', function() {
         let sent = false;
         let delievered = false;
 
-        CE.onAny((a) => {
-            console.log(a);
-        })
-
         pluginchat.on('$.eventStatus.created', (a) => {
             created = true;
         });
@@ -79,18 +75,12 @@ describe('connect', function() {
         pluginchat.on('$.eventStatus.delivered', (a) => {
             delivered = true;
 
-            console.log(a)
-
             pluginchat.eventStatus.read(a);
         });
 
         pluginchat.on('$.eventStatus.read', (a) => {
 
-            console.log(a.data.id)
-
             let e = pluginchat.eventStatus.geta(a);
-
-            console.log(e)
 
             assert.isObject(e);
             assert.equal(e.eventStatus.id, a.data.id);
@@ -106,9 +96,6 @@ describe('connect', function() {
         }).plugin(status({
             event: 'test-message'
         }));
-        // emitter.on('$.emitted', () => {
-        //     console.log('emitted!');
-        // });
 
     });
 
