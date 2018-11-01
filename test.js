@@ -1,4 +1,3 @@
-
 const assert = require('chai').assert;
 const status = require('./src/plugin.js');
 
@@ -13,10 +12,9 @@ describe('config', function() {
     it('should be configured', function(done) {
 
         CE = ChatEngine.create({
-            publishKey: 'pub-c-c6303bb2-8bf8-4417-aac7-e83b52237ea6',
-            subscribeKey: 'sub-c-67db0e7a-50be-11e7-bf50-02ee2ddab7fe',
+            publishKey: 'pub-c-01491c54-379f-4d4a-b20b-9a03c24447c7',
+            subscribeKey: 'sub-c-eaf4a984-4356-11e8-91e7-8ad1b2d46395',
         }, {
-            endpoint: 'http://localhost:3000/insecure',
             globalChannel: 'test-channel'
         });
 
@@ -29,26 +27,30 @@ describe('config', function() {
 });
 
 let channel = 'pluginchat-filter';
-
 describe('connect', function() {
 
     it('connect first client', function(done) {
 
-        CE.connect('robot-tester', {works: true}, 'auth-key');
+        this.timeout(60000);
 
-        CE.on('$.ready', (data) => {
+        CE.connect('robot-tester', 'auth-key');
+
+        CE.on('$.ready', (me) => {
 
             pluginchat = new CE.Chat(channel);
             pluginchat.plugin(status({
                 event: 'test-message'
             }))
+
+            CE.proto('Event', status({
+                event: 'test-message'
+            }))
+
             pluginchat.on('$.connected', () => {
-
                 done();
+            });
 
-            })
-
-            assert.isObject(data.me);
+            assert.isObject(me);
 
         });
 
@@ -72,12 +74,13 @@ describe('connect', function() {
 
         pluginchat.on('$.eventStatus.delivered', (a) => {
             delivered = true;
+
             pluginchat.eventStatus.read(a);
         });
 
         pluginchat.on('$.eventStatus.read', (a) => {
 
-            let e = pluginchat.eventStatus.get(a);
+            let e = pluginchat.eventStatus.geta(a);
 
             assert.isObject(e);
             assert.equal(e.eventStatus.id, a.data.id);
@@ -88,9 +91,11 @@ describe('connect', function() {
             done();
         })
 
-        pluginchat.emit('test-message', {
+        let emitter = pluginchat.emit('test-message', {
             message: 'test-message'
-        });
+        }).plugin(status({
+            event: 'test-message'
+        }));
 
     });
 
