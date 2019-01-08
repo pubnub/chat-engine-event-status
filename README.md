@@ -92,3 +92,7 @@ chat.on('$.eventStatus.read', (payload) => {
 ```
 
 Every payload returns field sender with which you can retrieve who user has notified the delivery or reading.
+
+## Support
+
+- If you **need help**, have a **general question** a **feature request** or to file a **bug**, contact <support@pubnub.com>
