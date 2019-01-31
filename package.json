@@ -1,7 +1,7 @@
 {
   "author": "Ian Jennings",
   "name": "chat-engine-event-status",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "src/plugin.js",
   "dependencies": {
     "chat-engine": "^0.9.19"
