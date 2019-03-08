@@ -1,5 +1,5 @@
 /**
- *
+ * @overview In many chat applications today, when a user sends a message, they expects to know if it was sent, delivered, and read by the recipient. With the ChatEngine Event Status plugin, you can fire a notification for each state of the message - sent, delivered and read.
  * @module chat-engine-event-status
  * @requires {@link ChatEngine}
  */
