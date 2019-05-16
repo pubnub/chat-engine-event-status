@@ -1,3 +1,7 @@
+This repository is a part of the [ChatEngine Framework](https://github.com/pubnub/chat-engine).
+For more information on building chat applications with PubNub, see our
+[Chat Resource Center](http://www.pubnub.com/developers/chat-resource-center/).
+
 # Chat Engine Event Status Plugin
 
 Adds the ability of tracking each message into different stages: (sent, delivery and read)
@@ -95,4 +99,4 @@ Every payload returns field sender with which you can retrieve who user has noti
 
 ## Support
 
-- If you **need help**, have a **general question** a **feature request** or to file a **bug**, contact <support@pubnub.com>
+- If you **need help**, have a **general question**, have a **feature request** or to file a **bug**, contact <support@pubnub.com>.
